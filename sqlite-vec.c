@@ -519,6 +519,16 @@ static f32 distance_hamming_u8(u8 *a, u8 *b, size_t n) {
   return (f32)same;
 }
 
+#define NON_ZERO(x) ((x) ? 1 : 0)
+
+static f32 distance_byte_hamming_u8(u8 *a, u8 *b, size_t n) {
+  int same = 0;
+  for (unsigned long i = 0; i < n; i++) {
+    same += NON_ZERO(a[i] != b[i]);
+  }
+  return (f32)same;
+}
+
 #ifdef _MSC_VER
 #if !defined(__clang__) && (defined(_M_ARM) || defined(_M_ARM64))
 // From
@@ -545,6 +555,25 @@ static f32 distance_hamming_u64(u64 *a, u64 *b, size_t n) {
   return (f32)same;
 }
 
+static f32 distance_byte_hamming_u64(u64 *a, u64 *b, size_t n) {
+  int same = 0;
+  for (unsigned long i = 0; i < n; i++) {
+    u64 xor = ~(a[i] ^ b[i]);
+
+    same += NON_ZERO(xor & 0x00000000000000FF);
+    same += NON_ZERO(xor & 0x000000000000FF00);
+    same += NON_ZERO(xor & 0x0000000000FF0000);
+    same += NON_ZERO(xor & 0x00000000FF000000);
+    same += NON_ZERO(xor & 0x000000FF00000000);
+    same += NON_ZERO(xor & 0x0000FF0000000000);
+    same += NON_ZERO(xor & 0x00FF000000000000);
+    same += NON_ZERO(xor & 0xFF00000000000000);
+  }
+  return (f32)same;
+}
+
+#undef NON_ZERO
+
 /**
  * @brief Calculate the hamming distance between two bitvectors.
  *
@@ -560,6 +589,15 @@ static f32 distance_hamming(const void *a, const void *b, const void *d) {
     return distance_hamming_u64((u64 *)a, (u64 *)b, dimensions / 8 / CHAR_BIT);
   }
   return distance_hamming_u8((u8 *)a, (u8 *)b, dimensions / CHAR_BIT);
+}
+
+static f32 distance_byte_hamming(const void *a, const void *b, const void *d) {
+  size_t dimensions = *((size_t *)d);
+
+  if ((dimensions % 64) == 0) {
+    return distance_byte_hamming_u64((u64 *)a, (u64 *)b, dimensions / 8);
+  }
+  return distance_byte_hamming_u8((u8 *)a, (u8 *)b, dimensions);
 }
 
 // from SQLite source:
@@ -1301,9 +1339,7 @@ static void vec_distance_hamming(sqlite3_context *context, int argc,
     goto finish;
   }
   case SQLITE_VEC_ELEMENT_TYPE_INT8: {
-    sqlite3_result_error(
-        context, "Cannot calculate hamming distance between two int8 vectors.",
-        -1);
+    sqlite3_result_double(context, distance_byte_hamming(a, b, &dimensions));
     goto finish;
   }
   }
@@ -2237,6 +2273,9 @@ enum Vec0DistanceMetrics {
   VEC0_DISTANCE_METRIC_L2 = 1,
   VEC0_DISTANCE_METRIC_COSINE = 2,
   VEC0_DISTANCE_METRIC_L1 = 3,
+
+  // Only bitvectors int8/bitvec
+  VEC0_DISTANCE_METRIC_HAMMING = 4,
 };
 
 struct VectorColumnDefinition {
@@ -2378,10 +2417,10 @@ int vec0_parse_vector_column(const char *source, int source_length,
     int keyLength = token.end - token.start;
 
     if (sqlite3_strnicmp(key, "distance_metric", keyLength) == 0) {
-
       if (elementType == SQLITE_VEC_ELEMENT_TYPE_BIT) {
         return SQLITE_ERROR;
       }
+
       // ensure equal sign after distance_metric
       rc = vec0_scanner_next(&scanner, &token);
       if (rc != VEC0_TOKEN_RESULT_SOME && token.token_type != TOKEN_TYPE_EQ) {
@@ -2403,6 +2442,11 @@ int vec0_parse_vector_column(const char *source, int source_length,
         distanceMetric = VEC0_DISTANCE_METRIC_L1;
       } else if (sqlite3_strnicmp(value, "cosine", valueLength) == 0) {
         distanceMetric = VEC0_DISTANCE_METRIC_COSINE;
+      } else if (sqlite3_strnicmp(value, "hamming", valueLength) == 0) {
+        distanceMetric = VEC0_DISTANCE_METRIC_HAMMING;
+        if (elementType != SQLITE_VEC_ELEMENT_TYPE_INT8) {
+          return SQLITE_ERROR;
+        }
       } else {
         return SQLITE_ERROR;
       }
@@ -6736,6 +6780,11 @@ int vec0Filter_knn_chunks_iter(vec0_vtab *p, sqlite3_stmt *stmtChunks,
                                         &vector_column->dimensions);
           break;
         }
+        case VEC0_DISTANCE_METRIC_HAMMING: {
+          result = distance_byte_hamming(base_i, (i8 *)queryVector,
+                                        &vector_column->dimensions);
+          break;
+        }
         }
 
         break;
@@ -6743,8 +6792,8 @@ int vec0Filter_knn_chunks_iter(vec0_vtab *p, sqlite3_stmt *stmtChunks,
       case SQLITE_VEC_ELEMENT_TYPE_BIT: {
         const u8 *base_i =
             ((u8 *)baseVectors) + (i * (vector_column->dimensions / CHAR_BIT));
-        result = distance_hamming(base_i, (u8 *)queryVector,
-                                  &vector_column->dimensions);
+        
+            result = distance_hamming(base_i, (u8 *)queryVector, &vector_column->dimensions);
         break;
       }
       }
