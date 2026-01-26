@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: ./scripts/vendor.sh
       - run: make loadable static
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-linux-x86_64-extension
           path: dist/*
@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: ./scripts/vendor.sh
       - run: make loadable static
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-macos-x86_64-extension
           path: dist/*
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: ./scripts/vendor.sh
       - run: make loadable static
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-macos-aarch64-extension
           path: dist/*
@@ -51,7 +51,7 @@ jobs:
       - run: make sqlite-vec.h
       - run: mkdir dist
       - run: cl.exe /fPIC -shared /W4 /Ivendor/ /O2 /LD sqlite-vec.c -o dist/vec0.dll
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-windows-x86_64-extension
           path: dist/*
@@ -63,7 +63,7 @@ jobs:
       - run: ./scripts/vendor.sh
       - run: make sqlite-vec.h
       - run: make CC=aarch64-linux-gnu-gcc loadable static
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-linux-aarch64-extension
           path: dist/*
@@ -85,7 +85,7 @@ jobs:
       - run: gh release upload ${{ github.ref_name }} sqlite-vec-$(cat VERSION)-cli-cosmopolitan.tar.gz
         env:
           GH_TOKEN: ${{ github.token }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-cosmopolitan
           path: dist/*
@@ -99,7 +99,7 @@ jobs:
       - run: ./scripts/vendor.sh
       - run: make sqlite-vec.h
       - run: make wasm
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-wasm32-emscripten
           path: dist/.wasm/*
@@ -135,7 +135,7 @@ jobs:
              AR=llvm-ar \
              RANLIB=llvm-ranlib \
              STRIP=llvm-strip loadable
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-${{ matrix.platforms.name }}-extension
           path: dist/*.so
@@ -178,7 +178,7 @@ jobs:
       - run: ./scripts/vendor.sh
 
       - run: make CFLAGS="-target ${{ matrix.platforms.target }} -isysroot $(xcrun -sdk ${{ matrix.platforms.sdk }} --show-sdk-path) -fembed-bitcode -DNDEBUG=1" loadable static
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-${{ matrix.platforms.name }}-extension
           path: dist/*

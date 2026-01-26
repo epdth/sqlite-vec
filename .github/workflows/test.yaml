@@ -18,7 +18,7 @@ jobs:
       - run: make loadable static
       - run: uv sync --directory tests
       - run: make test-loadable python=./tests/.venv/bin/python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-linux-x86_64-extension
           path: dist/*
@@ -34,7 +34,7 @@ jobs:
       - run: make loadable static
       - run: uv sync --directory tests
       - run: make test-loadable python=./tests/.venv/bin/python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-macos-x86_64-extension
           path: dist/*
@@ -49,7 +49,7 @@ jobs:
       - run: make loadable static
       - run: uv sync --directory tests
       - run: make test-loadable python=./tests/.venv/bin/python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-macos-aarch64-extension
           path: dist/*
@@ -69,7 +69,7 @@ jobs:
       - run: uv sync --directory tests
       - run: make test-loadable python=./tests/.venv/Scripts/python.exe
         shell: bash
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-windows-x86_64-extension
           path: dist/*
@@ -86,7 +86,7 @@ jobs:
       - run: ./scripts/vendor.sh
       - run: make sqlite-vec.h
       - run: make CC=arm-linux-gnueabihf-gcc loadable static
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-linux-aarch64-extension
           path: dist/*
@@ -128,7 +128,7 @@ jobs:
              AR=llvm-ar \
              RANLIB=llvm-ranlib \
              STRIP=llvm-strip loadable
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-android-${{ matrix.platforms.name }}-extension
           path: dist/*.so
@@ -171,7 +171,7 @@ jobs:
       - run: ./scripts/vendor.sh
 
       - run: make CFLAGS="-target ${{ matrix.platforms.target }} -isysroot $(xcrun -sdk ${{ matrix.platforms.sdk }} --show-sdk-path) -fembed-bitcode -DNDEBUG=1" loadable static
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-${{ matrix.platforms.name }}-extension
           path: dist/*
@@ -186,7 +186,7 @@ jobs:
       - run: make sqlite-vec.h
       - run: make wasm
       - run: ls; ls dist; ls dist/.wasm
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-wasm32-emscripten
           path: dist/.wasm/*
@@ -205,7 +205,7 @@ jobs:
           -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_FDATASYNC=1 -DHAVE_USLEEP=1 -DHAVE_LOCALTIME_R=1 -DHAVE_GMTIME_R=1 -DHAVE_DECL_STRERROR_R=1 -DHAVE_STRERROR_R=1 -DHAVE_POSIX_FALLOCATE=1 -DSQLITE_ENABLE_MATH_FUNCTIONS=1 -DSQLITE_ENABLE_FTS4=1 -DSQLITE_ENABLE_FTS5=1 -DSQLITE_ENABLE_RTREE=1 -DSQLITE_ENABLE_GEOPOLY=1 -DSQLITE_OMIT_POPEN=1 -DSQLITE_THREADSAFE=0
           emcc ./sqlite-vec.o -o vec0.so -s SIDE_MODULE=1 -g3 -s WASM_BIGINT=1
       - run: ls
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-pyodide
           path: vec0.so
@@ -235,7 +235,7 @@ jobs:
           WASI_SDK: "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-23/wasi-sdk-23.0-x86_64-linux.tar.gz"
           BINARYEN: "https://github.com/WebAssembly/binaryen/releases/download/version_118/binaryen-version_118-x86_64-linux.tar.gz"
         working-directory: go-sqlite3/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-ncruces-go
           path: go-sqlite3/embed/sqlite3.wasm
@@ -251,7 +251,7 @@ jobs:
           COSMO_VERSION: "3.5.4"
       - run: ./scripts/vendor.sh
       - run: make cli CC=$HOME/cosmo/bin/cosmocc AR=$HOME/cosmo/bin/cosmoar OMIT_SIMD=1
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: sqlite-vec-cosmopolitan
           path: dist/*
