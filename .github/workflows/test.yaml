@@ -1,5 +1,6 @@
 name: "Test"
 on:
+  workflow_dipatch:
   push:
     branches:
       - main
