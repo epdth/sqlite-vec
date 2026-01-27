@@ -432,17 +432,28 @@ def test_vec_distance_hamming():
     assert vec_distance_hamming(b"\xff", b"\x01") == 7
     assert vec_distance_hamming(b"\xab", b"\xab") == 0
 
+    vec_distance_byte_hamming = lambda *args: db.execute(
+        "select vec_distance_hamming(vec_int8(?), vec_int8(?))", args
+    ).fetchone()[0]
+    assert vec_distance_byte_hamming("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]", "[1,2,3,4,5,6,7,8,0,10,11,0,13,14,15,16]") == 2
+    assert vec_distance_byte_hamming("[1,2,3,4,0]", "[1,2,3,4,5]") == 1
+    assert vec_distance_byte_hamming("[1,2,3,4,6]", "[1,2,3,4,5]") == 0
+
+    # Test the u64 implementation
+    long_list = [42] * 64
+    long_list_mutated = [42] * 64
+    assert vec_distance_byte_hamming(long_list, long_list_mutated) == 0
+    
+    long_list_mutated[4] = 0
+    long_list_mutated[6] = 41
+    long_list_mutated[23] = 43
+    assert vec_distance_byte_hamming(long_list, long_list_mutated) == 3
+
     with pytest.raises(
         sqlite3.OperationalError,
         match="Cannot calculate hamming distance between two float32 vectors.",
     ):
         db.execute("select vec_distance_hamming(vec_f32('[1.0]'), vec_f32('[1.0]'))")
-
-    with pytest.raises(
-        sqlite3.OperationalError,
-        match="Cannot calculate hamming distance between two int8 vectors.",
-    ):
-        db.execute("select vec_distance_hamming(vec_int8(X'FF'), vec_int8(X'FF'))")
 
 
 def test_vec_distance_l1():

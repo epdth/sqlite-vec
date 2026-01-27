@@ -558,7 +558,7 @@ static f32 distance_hamming_u64(u64 *a, u64 *b, size_t n) {
 static f32 distance_byte_hamming_u64(u64 *a, u64 *b, size_t n) {
   int same = 0;
   for (unsigned long i = 0; i < n; i++) {
-    u64 xor = ~(a[i] ^ b[i]);
+    u64 xor = (a[i] ^ b[i]);
 
     same += NON_ZERO(xor & 0x00000000000000FF);
     same += NON_ZERO(xor & 0x000000000000FF00);
