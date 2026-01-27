@@ -437,7 +437,7 @@ def test_vec_distance_hamming():
     ).fetchone()[0]
     assert vec_distance_byte_hamming("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]", "[1,2,3,4,5,6,7,8,0,10,11,0,13,14,15,16]") == 2
     assert vec_distance_byte_hamming("[1,2,3,4,0]", "[1,2,3,4,5]") == 1
-    assert vec_distance_byte_hamming("[1,2,3,4,6]", "[1,2,3,4,5]") == 0
+    assert vec_distance_byte_hamming("[1,2,3,4,5]", "[1,2,3,4,5]") == 0
 
     # Test the u64 implementation
     long_list = [42] * 64
