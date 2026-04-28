@@ -1,0 +1,57 @@
+name: "Release"
+on:
+  workflow_dispatch: {}
+  release:
+    types: [published]
+permissions:
+  contents: read
+jobs:
+  build-linux-x86_64-extension:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/vendor.sh
+      - run: make loadable static
+      - uses: actions/upload-artifact@v6
+        with:
+          name: sqlite-vec-linux-x86_64-extension
+          path: dist/*
+  build-macos-x86_64-extension:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/vendor.sh
+      - run: make loadable static
+      - uses: actions/upload-artifact@v6
+        with:
+          name: sqlite-vec-macos-x86_64-extension
+          path: dist/*
+  build-macos-aarch64-extension:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/vendor.sh
+      - run: make loadable static
+      - uses: actions/upload-artifact@v6
+        with:
+          name: sqlite-vec-macos-aarch64-extension
+          path: dist/*
+  build-windows-x86_64-extension:
+    runs-on: windows-2019
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: ./scripts/vendor.sh
+        shell: bash
+      - run: make sqlite-vec.h
+      - run: mkdir dist
+      - run: cl.exe /fPIC -shared /W4 /Ivendor/ /O2 /LD sqlite-vec.c -o dist/vec0.dll
+      - uses: actions/upload-artifact@v6
+        with:
+          name: sqlite-vec-windows-x86_64-extension
+          path: dist/*
