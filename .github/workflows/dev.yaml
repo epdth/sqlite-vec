@@ -1,8 +1,6 @@
-name: "Release"
+name: "Produce build"
 on:
   workflow_dispatch: {}
-  release:
-    types: [published]
 permissions:
   contents: read
 jobs:
